@@ -67,6 +67,15 @@ const typeDefs = `
 
 `;
 // ================================
+// COUNTER UNTUK N+1 DEMO
+// (1 counter per resolver relasi, karena ada 2 pasangan
+//  tabel yang berelasi: customers<->orders, products<->orders)
+// ================================
+let orderCustomerCount = 0;
+let orderProductCount = 0;
+let customerOrdersCount = 0;
+let productOrdersCount = 0;
+// ================================
 // GRAPHQL RESOLVERS
 // ================================
 const resolvers = {
@@ -95,12 +104,16 @@ const resolvers = {
     // ============================
     Order: {
         customer: async (parent)=>{
+            orderCustomerCount++;
+            console.log(`🔢 Order.customer dipanggil ke-${orderCustomerCount} (order_id: ${parent.order_id})`);
             const result = await pool.query("SELECT * FROM customers WHERE customer_id = $1", [
                 parent.customer_id
             ]);
             return result.rows[0];
         },
         product: async (parent)=>{
+            orderProductCount++;
+            console.log(`🔢 Order.product dipanggil ke-${orderProductCount} (order_id: ${parent.order_id})`);
             const result = await pool.query("SELECT * FROM products WHERE product_id = $1", [
                 parent.product_id
             ]);
@@ -112,6 +125,8 @@ const resolvers = {
     // ============================
     Customer: {
         orders: async (parent)=>{
+            customerOrdersCount++;
+            console.log(`🔢 Customer.orders dipanggil ke-${customerOrdersCount} (customer_id: ${parent.customer_id})`);
             const result = await pool.query("SELECT * FROM orders WHERE customer_id = $1 ORDER BY order_id", [
                 parent.customer_id
             ]);
@@ -123,6 +138,8 @@ const resolvers = {
     // ============================
     Product: {
         orders: async (parent)=>{
+            productOrdersCount++;
+            console.log(`🔢 Product.orders dipanggil ke-${productOrdersCount} (product_id: ${parent.product_id})`);
             const result = await pool.query("SELECT * FROM orders WHERE product_id = $1 ORDER BY order_id", [
                 parent.product_id
             ]);
@@ -135,7 +152,8 @@ const resolvers = {
 // ================================
 const server = new ApolloServer({
     typeDefs,
-    resolvers
+    resolvers,
+    introspection: true
 });
 // ================================
 // NEXT.JS GRAPHQL HANDLER

@@ -5,6 +5,7 @@ self.__BUILD_MANIFEST = {
     "fallback": []
   },
   "sortedPages": [
+    "/",
     "/_app",
     "/_error",
     "/api/graphql"

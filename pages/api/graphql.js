@@ -3,6 +3,7 @@ require("dotenv").config();
 const { ApolloServer } = require("@apollo/server");
 const { startServerAndCreateNextHandler } = require("@as-integrations/next");
 const { Pool } = require("pg");
+const { ApolloServerPluginLandingPageLocalDefault } = require("@apollo/server/plugin/landingPage/default");
 
 // ================================
 // DATABASE CONNECTION
@@ -58,6 +59,17 @@ const typeDefs = `
 `;
 
 // ================================
+// COUNTER UNTUK N+1 DEMO
+// (1 counter per resolver relasi, karena ada 2 pasangan
+//  tabel yang berelasi: customers<->orders, products<->orders)
+// ================================
+
+let orderCustomerCount = 0;
+let orderProductCount = 0;
+let customerOrdersCount = 0;
+let productOrdersCount = 0;
+
+// ================================
 // GRAPHQL RESOLVERS
 // ================================
 
@@ -106,6 +118,9 @@ const resolvers = {
   Order: {
 
     customer: async (parent) => {
+      orderCustomerCount++;
+      console.log(`🔢 Order.customer dipanggil ke-${orderCustomerCount} (order_id: ${parent.order_id})`);
+
       const result = await pool.query(
         "SELECT * FROM customers WHERE customer_id = $1",
         [parent.customer_id]
@@ -115,6 +130,9 @@ const resolvers = {
     },
 
     product: async (parent) => {
+      orderProductCount++;
+      console.log(`🔢 Order.product dipanggil ke-${orderProductCount} (order_id: ${parent.order_id})`);
+
       const result = await pool.query(
         "SELECT * FROM products WHERE product_id = $1",
         [parent.product_id]
@@ -131,6 +149,9 @@ const resolvers = {
   Customer: {
 
     orders: async (parent) => {
+      customerOrdersCount++;
+      console.log(`🔢 Customer.orders dipanggil ke-${customerOrdersCount} (customer_id: ${parent.customer_id})`);
+
       const result = await pool.query(
         "SELECT * FROM orders WHERE customer_id = $1 ORDER BY order_id",
         [parent.customer_id]
@@ -147,6 +168,9 @@ const resolvers = {
   Product: {
 
     orders: async (parent) => {
+      productOrdersCount++;
+      console.log(`🔢 Product.orders dipanggil ke-${productOrdersCount} (product_id: ${parent.product_id})`);
+
       const result = await pool.query(
         "SELECT * FROM orders WHERE product_id = $1 ORDER BY order_id",
         [parent.product_id]
@@ -158,13 +182,43 @@ const resolvers = {
 };
 
 // ================================
+// PLUGIN: MUNCULIN COUNTER DI RESPONSE (extensions)
+// Ini TIDAK menambah field apapun ke schema/query.
+// Nilainya disisipkan otomatis di luar "data", di bagian "extensions",
+// setiap kali ada query yang dijalankan lewat Apollo Sandbox.
+// ================================
+
+const counterExtensionPlugin = {
+  async requestDidStart() {
+    return {
+      async willSendResponse({ response }) {
+        if (response.body.kind === "single") {
+          response.body.singleResult.extensions = {
+            resolverCallCounts: {
+              "Order.customer": orderCustomerCount,
+              "Order.product": orderProductCount,
+              "Customer.orders": customerOrdersCount,
+              "Product.orders": productOrdersCount,
+            },
+          };
+        }
+      },
+    };
+  },
+};
+
+// ================================
 // APOLLO SERVER
 // ================================
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  introspection: true
+  introspection: true,
+  plugins: [
+    ApolloServerPluginLandingPageLocalDefault({ embed: true }),
+    counterExtensionPlugin,
+  ],
 });
 
 // ================================
