@@ -17,6 +17,7 @@ __turbopack_context__.r("[externals]/dotenv [external] (dotenv, cjs, [project]/n
 const { ApolloServer } = __turbopack_context__.r("[externals]/@apollo/server [external] (@apollo/server, cjs, [project]/node_modules/@apollo/server)");
 const { startServerAndCreateNextHandler } = __turbopack_context__.r("[externals]/@as-integrations/next [external] (@as-integrations/next, cjs, [project]/node_modules/@as-integrations/next)");
 const { Pool } = __turbopack_context__.r("[externals]/pg [external] (pg, cjs, [project]/node_modules/pg)");
+const { ApolloServerPluginLandingPageLocalDefault } = __turbopack_context__.r("[externals]/@apollo/server/plugin/landingPage/default [external] (@apollo/server/plugin/landingPage/default, cjs, [project]/node_modules/@apollo/server)");
 // ================================
 // DATABASE CONNECTION
 // ================================
@@ -60,9 +61,37 @@ const typeDefs = `
 
   type Query {
     customers: [Customer!]!
-    products: [Product!]!
+    products(category: String): [Product!]!
     orders: [Order!]!
     order(order_id: ID!): Order
+  }
+
+  # ================================
+  # INPUT TYPES UNTUK MUTATION
+  # ================================
+
+  input CreateProductInput {
+    name: String!
+    category: String
+    price: Float!
+    stock: Int!
+  }
+
+  input UpdateProductInput {
+    name: String
+    category: String
+    price: Float
+    stock: Int
+  }
+
+  # ================================
+  # MUTATION
+  # ================================
+
+  type Mutation {
+    createProduct(input: CreateProductInput!): Product!
+    updateProduct(product_id: ID!, input: UpdateProductInput!): Product!
+    deleteProduct(product_id: ID!): Boolean!
   }
 
 `;
@@ -84,7 +113,14 @@ const resolvers = {
             const result = await pool.query("SELECT * FROM customers ORDER BY customer_id");
             return result.rows;
         },
-        products: async ()=>{
+        // Sekarang mendukung filter opsional berdasarkan category
+        products: async (_, { category })=>{
+            if (category) {
+                const result = await pool.query("SELECT * FROM products WHERE category = $1 ORDER BY product_id", [
+                    category
+                ]);
+                return result.rows;
+            }
             const result = await pool.query("SELECT * FROM products ORDER BY product_id");
             return result.rows;
         },
@@ -97,6 +133,48 @@ const resolvers = {
                 order_id
             ]);
             return result.rows[0] || null;
+        }
+    },
+    // ============================
+    // MUTATION RESOLVERS
+    // ============================
+    Mutation: {
+        createProduct: async (_, { input })=>{
+            const result = await pool.query(`INSERT INTO products (name, category, price, stock)
+         VALUES ($1, $2, $3, $4)
+         RETURNING *`, [
+                input.name,
+                input.category,
+                input.price,
+                input.stock
+            ]);
+            return result.rows[0];
+        },
+        updateProduct: async (_, { product_id, input })=>{
+            const result = await pool.query(`UPDATE products
+         SET name = COALESCE($1, name),
+             category = COALESCE($2, category),
+             price = COALESCE($3, price),
+             stock = COALESCE($4, stock)
+         WHERE product_id = $5
+         RETURNING *`, [
+                input.name,
+                input.category,
+                input.price,
+                input.stock,
+                product_id
+            ]);
+            if (result.rows.length === 0) {
+                throw new Error(`Product dengan id ${product_id} tidak ditemukan`);
+            }
+            return result.rows[0];
+        },
+        deleteProduct: async (_, { product_id })=>{
+            const result = await pool.query("DELETE FROM products WHERE product_id = $1 RETURNING *", [
+                product_id
+            ]);
+            // true kalau ada baris yang beneran kehapus, false kalau id-nya gak ketemu
+            return result.rows.length > 0;
         }
     },
     // ============================
@@ -148,12 +226,42 @@ const resolvers = {
     }
 };
 // ================================
+// PLUGIN: MUNCULIN COUNTER DI RESPONSE (extensions)
+// Ini TIDAK menambah field apapun ke schema/query.
+// Nilainya disisipkan otomatis di luar "data", di bagian "extensions",
+// setiap kali ada query yang dijalankan lewat Apollo Sandbox.
+// ================================
+const counterExtensionPlugin = {
+    async requestDidStart () {
+        return {
+            async willSendResponse ({ response }) {
+                if (response.body.kind === "single") {
+                    response.body.singleResult.extensions = {
+                        resolverCallCounts: {
+                            "Order.customer": orderCustomerCount,
+                            "Order.product": orderProductCount,
+                            "Customer.orders": customerOrdersCount,
+                            "Product.orders": productOrdersCount
+                        }
+                    };
+                }
+            }
+        };
+    }
+};
+// ================================
 // APOLLO SERVER
 // ================================
 const server = new ApolloServer({
     typeDefs,
     resolvers,
-    introspection: true
+    introspection: true,
+    plugins: [
+        ApolloServerPluginLandingPageLocalDefault({
+            embed: true
+        }),
+        counterExtensionPlugin
+    ]
 });
 // ================================
 // NEXT.JS GRAPHQL HANDLER

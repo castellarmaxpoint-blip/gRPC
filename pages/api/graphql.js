@@ -51,9 +51,37 @@ const typeDefs = `
 
   type Query {
     customers: [Customer!]!
-    products: [Product!]!
+    products(category: String): [Product!]!
     orders: [Order!]!
     order(order_id: ID!): Order
+  }
+
+  # ================================
+  # INPUT TYPES UNTUK MUTATION
+  # ================================
+
+  input CreateProductInput {
+    name: String!
+    category: String
+    price: Float!
+    stock: Int!
+  }
+
+  input UpdateProductInput {
+    name: String
+    category: String
+    price: Float
+    stock: Int
+  }
+
+  # ================================
+  # MUTATION
+  # ================================
+
+  type Mutation {
+    createProduct(input: CreateProductInput!): Product!
+    updateProduct(product_id: ID!, input: UpdateProductInput!): Product!
+    deleteProduct(product_id: ID!): Boolean!
   }
 
 `;
@@ -85,7 +113,17 @@ const resolvers = {
       return result.rows;
     },
 
-    products: async () => {
+    // Sekarang mendukung filter opsional berdasarkan category
+    products: async (_, { category }) => {
+      if (category) {
+        const result = await pool.query(
+          "SELECT * FROM products WHERE category = $1 ORDER BY product_id",
+          [category]
+        );
+
+        return result.rows;
+      }
+
       const result = await pool.query(
         "SELECT * FROM products ORDER BY product_id"
       );
@@ -108,6 +146,53 @@ const resolvers = {
       );
 
       return result.rows[0] || null;
+    }
+  },
+
+  // ============================
+  // MUTATION RESOLVERS
+  // ============================
+
+  Mutation: {
+
+    createProduct: async (_, { input }) => {
+      const result = await pool.query(
+        `INSERT INTO products (name, category, price, stock)
+         VALUES ($1, $2, $3, $4)
+         RETURNING *`,
+        [input.name, input.category, input.price, input.stock]
+      );
+
+      return result.rows[0];
+    },
+
+    updateProduct: async (_, { product_id, input }) => {
+      const result = await pool.query(
+        `UPDATE products
+         SET name = COALESCE($1, name),
+             category = COALESCE($2, category),
+             price = COALESCE($3, price),
+             stock = COALESCE($4, stock)
+         WHERE product_id = $5
+         RETURNING *`,
+        [input.name, input.category, input.price, input.stock, product_id]
+      );
+
+      if (result.rows.length === 0) {
+        throw new Error(`Product dengan id ${product_id} tidak ditemukan`);
+      }
+
+      return result.rows[0];
+    },
+
+    deleteProduct: async (_, { product_id }) => {
+      const result = await pool.query(
+        "DELETE FROM products WHERE product_id = $1 RETURNING *",
+        [product_id]
+      );
+
+      // true kalau ada baris yang beneran kehapus, false kalau id-nya gak ketemu
+      return result.rows.length > 0;
     }
   },
 

@@ -1,26 +1,3 @@
-{"timestamp":"00:00:01.886","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:17.563","source":"Server","level":"LOG","message":"◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }"}
-{"timestamp":"00:00:28.508","source":"Server","level":"ERROR","message":"(node:8496) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.\nIn the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.\n\nTo prepare for this change:\n- If you want the current behavior, explicitly use 'sslmode=verify-full'\n- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'\n\nSee https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.\n(Use `node --trace-warnings ...` to show where the warning was created)"}
-{"timestamp":"00:00:28.804","source":"Server","level":"LOG","message":"🔢 Order.customer dipanggil ke-1 (order_id: 1)"}
-{"timestamp":"00:00:28.805","source":"Server","level":"LOG","message":"🔢 Order.product dipanggil ke-1 (order_id: 1)"}
-{"timestamp":"00:00:28.806","source":"Server","level":"LOG","message":"🔢 Order.customer dipanggil ke-2 (order_id: 2)"}
-{"timestamp":"00:00:28.807","source":"Server","level":"LOG","message":"🔢 Order.product dipanggil ke-2 (order_id: 2)"}
-{"timestamp":"00:00:28.808","source":"Server","level":"LOG","message":"🔢 Order.customer dipanggil ke-3 (order_id: 3)"}
-{"timestamp":"00:00:28.809","source":"Server","level":"LOG","message":"🔢 Order.product dipanggil ke-3 (order_id: 3)"}
-{"timestamp":"00:00:28.810","source":"Server","level":"LOG","message":"🔢 Order.customer dipanggil ke-4 (order_id: 4)"}
-{"timestamp":"00:00:28.810","source":"Server","level":"LOG","message":"🔢 Order.product dipanggil ke-4 (order_id: 4)"}
-{"timestamp":"00:00:28.811","source":"Server","level":"LOG","message":"🔢 Order.customer dipanggil ke-5 (order_id: 5)"}
-{"timestamp":"00:00:28.812","source":"Server","level":"LOG","message":"🔢 Order.product dipanggil ke-5 (order_id: 5)"}
-{"timestamp":"00:00:28.813","source":"Server","level":"LOG","message":"🔢 Order.customer dipanggil ke-6 (order_id: 6)"}
-{"timestamp":"00:00:28.814","source":"Server","level":"LOG","message":"🔢 Order.product dipanggil ke-6 (order_id: 6)"}
-{"timestamp":"00:00:47.862","source":"Server","level":"LOG","message":"🔢 Customer.orders dipanggil ke-1 (customer_id: 1)"}
-{"timestamp":"00:00:47.862","source":"Server","level":"LOG","message":"🔢 Customer.orders dipanggil ke-2 (customer_id: 2)"}
-{"timestamp":"00:00:47.863","source":"Server","level":"LOG","message":"🔢 Customer.orders dipanggil ke-3 (customer_id: 3)"}
-{"timestamp":"00:00:47.863","source":"Server","level":"LOG","message":"🔢 Customer.orders dipanggil ke-4 (customer_id: 4)"}
-{"timestamp":"00:00:47.864","source":"Server","level":"LOG","message":"🔢 Customer.orders dipanggil ke-5 (customer_id: 5)"}
-{"timestamp":"00:01:01.197","source":"Server","level":"LOG","message":"🔢 Product.orders dipanggil ke-1 (product_id: 1)"}
-{"timestamp":"00:01:01.198","source":"Server","level":"LOG","message":"🔢 Product.orders dipanggil ke-2 (product_id: 2)"}
-{"timestamp":"00:01:01.199","source":"Server","level":"LOG","message":"🔢 Product.orders dipanggil ke-3 (product_id: 3)"}
-{"timestamp":"00:01:01.200","source":"Server","level":"LOG","message":"🔢 Product.orders dipanggil ke-4 (product_id: 4)"}
-{"timestamp":"00:01:01.200","source":"Server","level":"LOG","message":"🔢 Product.orders dipanggil ke-5 (product_id: 5)"}
-{"timestamp":"00:01:01.201","source":"Server","level":"LOG","message":"🔢 Product.orders dipanggil ke-6 (product_id: 6)"}
+{"timestamp":"00:00:18.481","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:19.232","source":"Server","level":"LOG","message":"◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }"}
+{"timestamp":"00:01:03.709","source":"Server","level":"ERROR","message":"(node:11800) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.\nIn the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.\n\nTo prepare for this change:\n- If you want the current behavior, explicitly use 'sslmode=verify-full'\n- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'\n\nSee https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.\n(Use `node --trace-warnings ...` to show where the warning was created)"}
