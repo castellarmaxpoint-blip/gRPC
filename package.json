@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "grpc:start": "node grpc-server.js"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +15,8 @@
   "dependencies": {
     "@apollo/server": "^5.5.1",
     "@as-integrations/next": "^4.1.0",
+    "@grpc/grpc-js": "^1.14.5",
+    "@grpc/proto-loader": "^0.8.1",
     "dotenv": "^17.4.2",
     "graphql": "^16.14.2",
     "next": "^16.3.4",
